@@ -1,6 +1,6 @@
 MaplibreTest - README
 
-이 프로젝트는 Spring Boot + MyBatis + Lombok + Thymeleaf 기반의 웹 애플리케이션으로, 여러 MapLibre 지도를 제공하고 지도에서 위치 기반 메모(노트)를 추가/수정하여 MySQL에 저장할 수 있습니다.
+이 프로젝트는 Spring Boot + MyBatis + Lombok + Thymeleaf 기반의 웹 애플리케이션으로, 여러 MapLibre 지도를 제공하고 지도에서 위치 기반 메모(노트)를 추가/수정/삭제하여 MySQL에 저장할 수 있습니다.
 
 주요 변경 사항
 - `rasterMap.html`에 `map.html`과 동일한 노트(메모) 기능 추가
@@ -8,6 +8,7 @@ MaplibreTest - README
   - 저장 시 `/api/notes`로 POST하여 DB에 저장, 팝업이 읽기 전용으로 전환
   - 기존 노트는 `/api/notes` GET으로 로드하여 팝업으로 표시
   - 노트 수정 지원: 읽기 팝업에서 "수정" 버튼으로 편집 팝업을 열어 PUT으로 업데이트
+  - 노트 삭제 지원: 읽기 팝업의 "삭제" 버튼으로 DELETE /api/notes/{id} 호출하여 삭제
   - 10초 주기 폴링(poll)으로 새 노트가 있으면 자동으로 표시
 
 사전 준비
@@ -52,12 +53,14 @@ gradlew.bat bootRun
 - GET `/api/notes` : 모든 노트 조회 (클라이언트에서 로드/폴링에 사용)
 - POST `/api/notes` : 새로운 노트 저장 (payload: { lng, lat, content })
 - PUT `/api/notes` : 기존 노트 수정 (payload: { id, lng, lat, content })
+- DELETE `/api/notes/{id}` : 기존 노트 삭제 (경로 변수로 id 전달)
 
-rasterMap 동작(사용자 관점)
+rasterMap/map 동작(사용자 관점)
 1. 브라우저에서 `/rasterMap` 또는 `/map` 접속
 2. 지도 클릭 → 입력 팝업이 열림 → 메모 입력 → 저장(서버에 POST) → 읽기 팝업으로 전환
 3. 저장된 노트는 다른 클라이언트가 페이지를 새로 고치거나 폴링에 의해 10초 이내로 표시
 4. 읽기 팝업의 "수정" 버튼을 누르면 편집 팝업이 열리고 저장하면 PUT으로 업데이트
+5. 읽기 팝업의 "삭제" 버튼을 누르면 확인창 이후 DELETE 요청이 호출되어 노트가 삭제되고 팝업이 제거됨
 
 간단한 API 테스트 예시 (cmd)
 - GET:
@@ -72,6 +75,10 @@ curl -H "Content-Type: application/json" -d "{\"lng\":127.0246,\"lat\":37.5326,\
 ```cmd
 curl -H "Content-Type: application/json" -X PUT -d "{\"id\":4,\"lng\":127.0246,\"lat\":37.5326,\"content\":\"수정된 내용\"}" http://localhost:8080/api/notes
 ```
+- DELETE 예시 (id가 4인 노트 삭제):
+```cmd
+curl -X DELETE http://localhost:8080/api/notes/4
+```
 (포트가 8081로 실행한 경우 위에서 8080을 8081로 변경)
 
 문제 해결(자주 발생하는 이슈)
@@ -83,9 +90,6 @@ curl -H "Content-Type: application/json" -X PUT -d "{\"id\":4,\"lng\":127.0246,\
 추가로 할 수 있는 개선
 - 실시간 동기화: 폴링 대신 WebSocket 또는 Server-Sent Events(SSE)로 노트 동기화
 - 인증/권한: 사용자 계정과 노트 소유권 연동
-- 노트 삭제 기능 및 UI 개선(확인/취소, 길이 제한, 로딩 인디케이터 등)
+- UI 개선: 삭제 시 로딩 표시, 삭제 취소(undo) 기능, 최대 문자열 길이 등
 
-원하시면 제가 다음 작업을 해드리겠습니다:
-- README에 더 자세한 사용 예시(스크린샷, 브라우저 콘솔 예시)를 추가
-- MapLibre 자원을 로컬로 호스팅하도록 템플릿 수정
-- 노트 삭제 기능 및 테스트 케이스 추가
+변경 완료: README를 갱신하여 삭제 API 및 UI 사용법을 추가했습니다. (git 관련 명령은 요청에 따라 수행하지 않았습니다.)
