@@ -22,4 +22,9 @@ public class NoteService {
         noteRepository.save(note);
         return note;
     }
+
+    public NoteDTO update(NoteDTO note) {
+        noteRepository.update(note);
+        return note;
+    }
 }

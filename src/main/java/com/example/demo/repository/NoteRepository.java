@@ -21,4 +21,8 @@ public class NoteRepository {
     public void save(NoteDTO note) {
         sql.insert("Note.save", note);
     }
+
+    public void update(NoteDTO note) {
+        sql.update("Note.update", note);
+    }
 }
