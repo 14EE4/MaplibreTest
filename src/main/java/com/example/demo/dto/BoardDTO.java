@@ -12,6 +12,7 @@ public class BoardDTO {
     private BigDecimal center_lng;
     private BigDecimal center_lat;
     private Map<String,Object> meta;
+    private Integer posts_count;
     private Timestamp created_at;
     private Timestamp updated_at;
 
@@ -29,6 +30,8 @@ public class BoardDTO {
     public void setCenter_lat(BigDecimal center_lat) { this.center_lat = center_lat; }
     public Map<String, Object> getMeta() { return meta; }
     public void setMeta(Map<String, Object> meta) { this.meta = meta; }
+    public Integer getPosts_count() { return posts_count; }
+    public void setPosts_count(Integer posts_count) { this.posts_count = posts_count; }
     public Timestamp getCreated_at() { return created_at; }
     public void setCreated_at(Timestamp created_at) { this.created_at = created_at; }
     public Timestamp getUpdated_at() { return updated_at; }

@@ -21,7 +21,7 @@ public class BoardRepository {
     private JdbcTemplate jdbc;
 
     public List<Map<String,Object>> findAllBoards() {
-        return jdbc.queryForList("SELECT id, name, grid_x, grid_y, center_lng, center_lat, meta, created_at, updated_at FROM boards");
+        return jdbc.queryForList("SELECT id, name, grid_x, grid_y, center_lng, center_lat, meta, posts_count, created_at, updated_at FROM boards");
     }
 
     public Long findBoardIdByGrid(int gridX, int gridY) {
@@ -35,7 +35,7 @@ public class BoardRepository {
     }
 
     public Long createBoard(BoardDTO b) {
-        String sql = "INSERT INTO boards (name, grid_x, grid_y, center_lng, center_lat, meta) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO boards (name, grid_x, grid_y, center_lng, center_lat, meta, posts_count) VALUES (?, ?, ?, ?, ?, ?, ?)";
         KeyHolder kh = new GeneratedKeyHolder();
         jdbc.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
@@ -45,6 +45,7 @@ public class BoardRepository {
             ps.setObject(4, b.getCenter_lng());
             ps.setObject(5, b.getCenter_lat());
             ps.setObject(6, b.getMeta());
+            if (b.getPosts_count() == null) ps.setInt(7, 0); else ps.setInt(7, b.getPosts_count());
             return ps;
         }, kh);
         Number key = kh.getKey();
@@ -68,6 +69,12 @@ public class BoardRepository {
             ps.setString(3, p.getContent());
             return ps;
         }, kh);
+        // increment posts_count on boards table for this board
+        try {
+            jdbc.update("UPDATE boards SET posts_count = posts_count + 1 WHERE id = ?", boardId);
+        } catch (Exception ex) {
+            // ignore increment failure (non-critical)
+        }
         Number k = kh.getKey();
         return k == null ? null : k.longValue();
     }
