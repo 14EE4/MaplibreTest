@@ -42,8 +42,9 @@ try { map.getCanvas().style.cursor = 'crosshair'; } catch (e) { console.warn('cu
 // Grid overlay controls and renderer
 // UI: toggle + grid size selector (degrees)
 // 격자 크기 고정: 5도
+// 기본: 격자 비활성화
 var gridState = {
-    enabled: true,
+    enabled: false,
     sizeDeg: 5
 };
 
