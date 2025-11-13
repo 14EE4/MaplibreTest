@@ -77,33 +77,42 @@
             const deleteBtn = document.createElement('button'); deleteBtn.type = 'button'; deleteBtn.textContent = '삭제';
             ctrl.appendChild(pwdInput); ctrl.appendChild(editBtn); ctrl.appendChild(deleteBtn);
 
-            // edit flow
+            // edit flow: verify password with server before showing edit UI
             editBtn.addEventListener('click', function(){
-                // enter edit mode
                 if (div.querySelector('.editing')) return;
-                const contentDiv = div.querySelector('.post-content');
-                const current = p.content || '';
-                const ta = document.createElement('textarea'); ta.value = current; ta.style.width='100%'; ta.style.height='120px';
-                ta.className = 'editing';
-                contentDiv.parentNode.replaceChild(ta, contentDiv);
-                // change buttons
-                editBtn.textContent = '저장';
-                const cancelBtn = document.createElement('button'); cancelBtn.type='button'; cancelBtn.textContent='취소'; cancelBtn.style.marginLeft='6px';
-                ctrl.appendChild(cancelBtn);
+                const pwRaw = pwdInput.value || '';
+                const pw = pwRaw.trim();
+                if (!pw) { alert('수정을 위해 비밀번호를 입력하세요.'); return; }
+                // verify password first
+                fetch('/api/boards/' + encodeURIComponent(resolvedBoardId) + '/posts/' + encodeURIComponent(p.id) + '/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pw }) })
+                    .then(function(res){ if (!res.ok) return res.json().then(function(j){ throw j; }); return res.json(); })
+                    .then(function(){
+                        // enter edit mode
+                        const contentDiv = div.querySelector('.post-content');
+                        const current = p.content || '';
+                        const ta = document.createElement('textarea'); ta.value = current; ta.style.width='100%'; ta.style.height='120px';
+                        ta.className = 'editing';
+                        contentDiv.parentNode.replaceChild(ta, contentDiv);
+                        // change buttons
+                        editBtn.textContent = '저장';
+                        const cancelBtn = document.createElement('button'); cancelBtn.type='button'; cancelBtn.textContent='취소'; cancelBtn.style.marginLeft='6px';
+                        ctrl.appendChild(cancelBtn);
 
-                editBtn.onclick = function(){
-                    const pwRaw = pwdInput.value || '';
-                    const pw = pwRaw.trim();
-                    if (!pw) { alert('수정을 위해 비밀번호를 입력하세요.'); return; }
-                    const newContent = ta.value.trim();
-                    if (!newContent) { alert('내용을 입력하세요.'); return; }
-                    fetch('/api/boards/' + encodeURIComponent(resolvedBoardId) + '/posts/' + encodeURIComponent(p.id), { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pw, content: newContent, author: (document.getElementById('author').value||null) }) })
-                        .then(function(res){ if (!res.ok) return res.json().then(function(j){ throw j; }); return res.json(); })
-                        .then(function(){ loadPosts(); })
-                        .catch(function(err){ console.error('update failed', err); alert((err && err.error) ? err.error : '수정 실패(비밀번호 확인)'); });
-                };
+                        editBtn.onclick = function(){
+                            const pwRaw2 = pwdInput.value || '';
+                            const pw2 = pwRaw2.trim();
+                            if (!pw2) { alert('수정을 위해 비밀번호를 입력하세요.'); return; }
+                            const newContent = ta.value.trim();
+                            if (!newContent) { alert('내용을 입력하세요.'); return; }
+                            fetch('/api/boards/' + encodeURIComponent(resolvedBoardId) + '/posts/' + encodeURIComponent(p.id), { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pw2, content: newContent, author: (document.getElementById('author').value||null) }) })
+                                .then(function(res){ if (!res.ok) return res.json().then(function(j){ throw j; }); return res.json(); })
+                                .then(function(){ loadPosts(); })
+                                .catch(function(err){ console.error('update failed', err); alert((err && err.error) ? err.error : '수정 실패(비밀번호 확인)'); });
+                        };
 
-                cancelBtn.addEventListener('click', function(){ loadPosts(); });
+                        cancelBtn.addEventListener('click', function(){ loadPosts(); });
+                    })
+                    .catch(function(err){ console.error('verify failed', err); alert((err && err.error) ? err.error : '비밀번호가 일치하지 않습니다.'); });
             });
 
             // delete flow

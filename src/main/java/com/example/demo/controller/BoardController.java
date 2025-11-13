@@ -77,6 +77,17 @@ public class BoardController {
         return ResponseEntity.status(500).body(Map.of("error","수정 실패"));
     }
 
+    @PostMapping("/{boardId}/posts/{postId}/verify")
+    public ResponseEntity<Map<String,Object>> verifyPostPassword(@PathVariable("boardId") Long boardId,
+                                                                 @PathVariable("postId") Long postId,
+                                                                 @RequestBody(required = false) Map<String,Object> body) {
+        String password = null;
+        if (body != null && body.get("password") != null) password = body.get("password").toString();
+        boolean ok = boardService.verifyPostPassword(boardId, postId, password);
+        if (ok) return ResponseEntity.ok(Map.of("ok", true));
+        return ResponseEntity.status(403).body(Map.of("error","비밀번호가 일치하지 않습니다."));
+    }
+
     @DeleteMapping("/{boardId}/posts/{postId}")
     public ResponseEntity<?> deletePost(@PathVariable("boardId") Long boardId, @PathVariable("postId") Long postId, @RequestBody(required = false) Map<String,Object> body) {
         String password = null;
