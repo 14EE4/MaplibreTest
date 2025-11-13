@@ -174,6 +174,18 @@
         }
     });
 
+    // 비밀번호 입력 칸에서도 Ctrl+Enter로 글 작성 가능하게 함
+    var postPasswordEl = document.getElementById('postPassword');
+    if (postPasswordEl) {
+        postPasswordEl.addEventListener('keydown', function(e){
+            var isEnter = (e.key === 'Enter' || e.keyCode === 13);
+            if (isEnter && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                submitPost();
+            }
+        });
+    }
+
     // entry
     if (boardIdParam) { loadBoardById(boardIdParam); }
     else if (gridX != null && gridY != null) { loadBoardByGrid(gridX, gridY); }
