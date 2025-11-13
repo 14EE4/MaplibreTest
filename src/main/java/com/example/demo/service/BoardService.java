@@ -45,5 +45,39 @@ public class BoardService {
 
     public Long createPost(Long boardId, PostDTO p) { return repo.createPost(boardId, p); }
 
+    // Hash password (SHA-256 hex) helper
+    private String hashPassword(String pw) {
+        if (pw == null) return null;
+        try {
+            java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] bytes = md.digest(pw.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder sb = new StringBuilder();
+            for (byte b : bytes) sb.append(String.format("%02x", b & 0xff));
+            return sb.toString();
+        } catch (Exception e) { return null; }
+    }
+
+    public Long createPostWithPassword(Long boardId, PostDTO p) {
+        if (p != null && p.getPassword() != null) {
+            String hashed = hashPassword(p.getPassword());
+            // store hashed password in content of DTO's password field
+            p.setPassword(hashed);
+        }
+        return repo.createPost(boardId, p);
+    }
+
+    public boolean verifyPostPassword(Long boardId, Long postId, String plainPassword) {
+        String hashed = hashPassword(plainPassword);
+        return repo.verifyPostPassword(boardId, postId, hashed);
+    }
+
+    public boolean updatePost(Long boardId, Long postId, String author, String content) {
+        return repo.updatePost(boardId, postId, author, content);
+    }
+
+    public boolean deletePost(Long boardId, Long postId) {
+        return repo.deletePost(boardId, postId);
+    }
+
     public List<Map<String,Object>> activity(Long boardId, int hours) { return repo.getActivity(boardId, hours); }
 }

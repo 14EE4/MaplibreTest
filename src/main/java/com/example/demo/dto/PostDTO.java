@@ -7,6 +7,7 @@ public class PostDTO {
     private Long board_id;
     private String author;
     private String content;
+    private String password; // plain (incoming) or null
     private Timestamp createdAt;
     private Timestamp updatedAt;
 
@@ -18,6 +19,8 @@ public class PostDTO {
     public void setAuthor(String author) { this.author = author; }
     public String getContent() { return content; }
     public void setContent(String content) { this.content = content; }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
     public Timestamp getCreatedAt() { return createdAt; }
     public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
     public Timestamp getUpdatedAt() { return updatedAt; }

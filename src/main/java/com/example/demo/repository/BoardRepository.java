@@ -60,13 +60,15 @@ public class BoardRepository {
 
     public Long createPost(Long boardId, PostDTO p) {
         String table = getPostsTableForBoard(boardId);
-        String sql = "INSERT INTO `" + table + "` (board_id, author, content) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO `" + table + "` (board_id, author, content, password) VALUES (?, ?, ?, ?)";
         KeyHolder kh = new GeneratedKeyHolder();
         jdbc.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.setLong(1, boardId);
             ps.setString(2, p.getAuthor());
             ps.setString(3, p.getContent());
+            // password expected to be already hashed (hex) or null
+            ps.setString(4, p.getPassword());
             return ps;
         }, kh);
         // increment posts_count on boards table for this board
@@ -115,10 +117,46 @@ public class BoardRepository {
                 + "board_id BIGINT,"
                 + "author VARCHAR(255),"
                 + "content TEXT,"
+                + "password VARCHAR(128),"
                 + "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
                 + "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
                 + ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
         jdbc.execute(sql);
+    }
+
+    public boolean verifyPostPassword(Long boardId, Long postId, String hashedPassword) {
+        try {
+            String table = getPostsTableForBoard(boardId);
+            String sql = "SELECT password FROM `" + table + "` WHERE id = ?";
+            String stored = jdbc.queryForObject(sql, String.class, postId);
+            if (stored == null && hashedPassword == null) return true;
+            if (stored == null) return false;
+            return stored.equals(hashedPassword);
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+
+    public boolean updatePost(Long boardId, Long postId, String author, String content) {
+        try {
+            String table = getPostsTableForBoard(boardId);
+            String sql = "UPDATE `" + table + "` SET author = ?, content = ? WHERE id = ?";
+            int cnt = jdbc.update(sql, author, content, postId);
+            return cnt > 0;
+        } catch (Exception ex) { return false; }
+    }
+
+    public boolean deletePost(Long boardId, Long postId) {
+        try {
+            String table = getPostsTableForBoard(boardId);
+            String sql = "DELETE FROM `" + table + "` WHERE id = ?";
+            int cnt = jdbc.update(sql, postId);
+            if (cnt > 0) {
+                try { jdbc.update("UPDATE boards SET posts_count = GREATEST(posts_count-1,0) WHERE id = (SELECT board_id FROM `"+table+"` WHERE id = ?)", postId); } catch(Exception e) { /* ignore */ }
+                return true;
+            }
+            return false;
+        } catch (Exception ex) { return false; }
     }
 
 }
