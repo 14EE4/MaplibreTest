@@ -96,7 +96,7 @@
         fetch('/api/boards/' + encodeURIComponent(resolvedBoardId) + '/posts').then(r => r.json()).then(function(list){ renderPosts(list); }).catch(function(err){ console.error('posts fetch failed', err); metaEl.textContent = '게시글을 불러오지 못했습니다. 콘솔 확인'; });
     }
 
-    submitBtn.addEventListener('click', function(){
+    function submitPost() {
         if (!resolvedBoardId) { alert('게시판이 선택되지 않았습니다. URL에 id 또는 grid_x/grid_y를 지정하세요.'); return; }
         var author = document.getElementById('author').value.trim();
         var content = document.getElementById('content').value.trim();
@@ -106,6 +106,18 @@
             .then(function(res){ if (!res.ok) throw new Error('post failed'); return res.json(); })
             .then(function(saved){ document.getElementById('content').value = ''; loadPosts(); })
             .catch(function(err){ console.error('post failed', err); alert('작성 실패. 콘솔을 확인하세요.'); });
+    }
+
+    submitBtn.addEventListener('click', submitPost);
+
+    // 단축키: Ctrl+Enter (또는 Mac의 Cmd+Enter)로 글 작성
+    var contentEl = document.getElementById('content');
+    contentEl.addEventListener('keydown', function(e){
+        var isEnter = (e.key === 'Enter' || e.keyCode === 13);
+        if (isEnter && (e.ctrlKey || e.metaKey)) {
+            e.preventDefault();
+            submitPost();
+        }
     });
 
     // entry
